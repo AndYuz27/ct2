@@ -1,36 +1,32 @@
-let http = require('http')
-let lem = require('fs')
+console.log("Server is starting")
+const http = require("http");
+const fs = require("fs");
 const url = require("url");
-const PORT = 8000
-function PicName({ 
-    pic,
-    name,
-    date
-    }) 
-    {
-    this.pic = pic;
-    this.name = name;
-};
-let dat1;
-lem.readFile('ppl2.csv', function (err, Data) {
-    dat1 = Data .toString() .split(';;') .filter(e => e) .map(e => e.replace('\r\n','').split(';')).slice(0);
-    let pers = dat1.map(([pic, name]) => new PicName({ pic, name}));
-    console.log(pers.sort((a, b) => b.date - a.date).map(person => person.documents));
-    console.log(pers);
-    
+const PORT = 8003;
+const mimeTypes = {
+    ".js": "text/javascript",
+    ".jpg": "image/jpeg",
+    ".png": "image/png"
+}
+const array = fs.readFileSync("ppl2.csv", "utf8").split("\n");
+const server = http.createServer((rq, rs) => {
+    if (rq.url === "/") {
+        rs.writeHead(200, {'Content-Type': 'text/html'});
+            array.forEach((e) => {rs.write(`<img src=${e} alt=${e} width="640">`)})
+            rs.end()
+    } else {
+        let flExt = rq.url.split(".");
+        console.log(flExt)
+        flExt = "." + flExt[flExt.length - 1];
+        console.log(flExt)
+        if (flExt === ".png" || flExt === ".jpg") {
+            fs.readFile("./" + rq.url, (err, data) => {
+                if (err) console.log('Эммм... У вас Ошибка в коде' + err)
+                console.log(data)
+                rs.write(data);
+                rs.end();
+            })
+        }
+    }
 });
-
-const server = http.createServer((req, res) => {
-    let img =lem.readFileSync(PicName)
-    console.log(img)
-      res.write(img);
-      res.end()
-  })
-  
-  
-  server.listen(PORT, err =>{
-      console.log("Server on " + PORT)
-  })
-
-  
-// сделал не до конца (выдаёт ошибки), доделаю до понедельника
+server.listen(PORT, err => !err && console.log('So YEAH! Server is worked.   PORT:' + PORT));
